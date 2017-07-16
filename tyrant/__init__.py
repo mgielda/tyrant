@@ -55,10 +55,13 @@ def main():
         print('No tasks.py file found or file corrupt.')
         sys.exit(1)
 
-    for fun in [cd, exists, getcwd, run, get_stdout, watch]:
+    builtin = [cd, exists, getcwd, run, get_stdout, watch]
+
+    for fun in builtin:
         setattr(tasks, fun.__name__, fun)
+
     default_task = tasks.default_task if hasattr(tasks, 'default_task') else None
-    tyrant([tasks.__dict__.get(a) for a in dir(tasks) if a != 'default_task' and isinstance(tasks.__dict__.get(a), types.FunctionType)], default_task)
+    tyrant([tasks.__dict__.get(a) for a in dir(tasks) if a not in [b.__name__ for b in builtin] and a != 'default_task' and isinstance(tasks.__dict__.get(a), types.FunctionType)], default_task)
 
 if __name__ == '__main__':
     main()
