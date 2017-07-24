@@ -1,11 +1,30 @@
 #!/usr/bin/env python3
 
 import argh, contextlib, watchdog
-from sarge import run, get_stdout
+import sarge
 
 import os, sys, types
 from os import getcwd
 from os.path import exists
+
+def run(command, **kwargs):
+    if 'shell' not in kwargs:
+        kwargs['shell'] = True
+    sarge.run(command, **kwargs)
+
+def get_stdout(command, **kwargs):
+    if 'shell' not in kwargs:
+        kwargs['shell'] = True
+    sarge.get_stdout(command, **kwargs)
+
+def source(script):
+    import os
+    from subprocess import check_output
+
+    output = check_output(script + "; env -0", shell=True, executable="/bin/bash")
+    #print(output.split('\0'))
+    os.environ.update(line.partition('=')[::2] for line in output.decode('utf-8').split('\0'))
+
 
 def watch(command, directories='.', patterns='*', ignore_patterns='', ignore_directories=False, wait_for_process=False, drop_during_process=False, timeout=5, recursive=True):
     """
@@ -55,7 +74,7 @@ def main():
         print('No tasks.py file found or file corrupt.')
         sys.exit(1)
 
-    builtin = [cd, exists, getcwd, run, get_stdout, watch]
+    builtin = [cd, exists, getcwd, run, get_stdout, source, watch]
 
     for fun in builtin:
         setattr(tasks, fun.__name__, fun)
